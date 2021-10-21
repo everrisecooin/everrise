@@ -475,7 +475,7 @@ contract EverRise is Context, IERC20, Ownable {
     uint256 private _tFeeTotal;
 
     string private _name = "DO NOT BUY";
-    string private _symbol = "RV2";
+    string private _symbol = "RV3";
     uint8 private _decimals = 9;
 
 
@@ -551,7 +551,6 @@ contract EverRise is Context, IERC20, Ownable {
     event BuybackMinAvailabilityUpdated(uint256 prevValue, uint256 newValue);
     event BusinessDevelopmentAddressUpdated(address prevAddress, address newAddress);
     event TradingEnabled();
-    event LiquidityAdded();
     event StakingAddressUpdated(address prevAddress, address newAddress);
     
     modifier lockTheSwap {
@@ -731,8 +730,11 @@ contract EverRise is Context, IERC20, Ownable {
         if(from != owner() && to != owner()) {
             require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
         }
-        require(isLiquidityAdded, "Liquidity is not added");
+
         require(isTradingEnabled || to == uniswapV2Pair, "Trading is not enabled");
+        if (to == uniswapV2Pair && msg.value > 0) {
+            require(from == owner(),"Liquidity can be added by the owner only");
+        }
 
         uint256 contractTokenBalance = balanceOf(address(this));
         bool overMinimumTokenBalance = contractTokenBalance >= minimumTokensBeforeSwap;
@@ -967,7 +969,7 @@ contract EverRise is Context, IERC20, Ownable {
     }
 
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) internal {
-        require(deadline >= block.timestamp, 'UniswapV2: EXPIRED');
+        require(deadline >= block.timestamp, 'EverRise: EXPIRED');
         bytes32 digest = keccak256(
             abi.encodePacked(
                 '\x19\x01',
@@ -976,7 +978,7 @@ contract EverRise is Context, IERC20, Ownable {
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
+        require(recoveredAddress != address(0) && recoveredAddress == owner, 'EverRise: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }
 
@@ -1146,11 +1148,6 @@ contract EverRise is Context, IERC20, Ownable {
     function setTradingEnabled() public onlyOwner {
         isTradingEnabled = true;
         emit TradingEnabled();
-    }
-
-    function setLiquidityAdded() public onlyOwner {
-        isLiquidityAdded = true;
-        emit LiquidityAdded();
     }
 
     function setStakingAddress(address _stakingAddress) public onlyOwner {
