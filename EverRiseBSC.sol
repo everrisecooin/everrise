@@ -732,9 +732,9 @@ contract EverRise is Context, IERC20, Ownable {
         }
 
         require(isTradingEnabled || to == uniswapV2Pair, "Trading is not enabled");
-        if (to == uniswapV2Pair && msg.value > 0) {
-            require(from == owner(),"Liquidity can be added by the owner only");
-        }
+        // if (to == uniswapV2Pair && msg.value > 0) {
+        //     require(from == owner(),"Liquidity can be added by the owner only");
+        // }
 
         uint256 contractTokenBalance = balanceOf(address(this));
         bool overMinimumTokenBalance = contractTokenBalance >= minimumTokensBeforeSwap;
